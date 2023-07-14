@@ -39,6 +39,11 @@ class Cuenta:
     def get_contactos(self):
         return self.contactos
 
+BaseDatos = []
+BaseDatos.append(Cuenta("21345", "Arnaldo", 200, ["123", "456"]))
+BaseDatos.append(Cuenta("123", "Luisa", 400, ["456"]))
+BaseDatos.append(Cuenta("456", "Andrea", 300, ["21345"]))
+
 app = Flask(__name__)
 app.debug = True
 CORS(app, origins=["https://127.0.0.1:8000"], max_age=10)
@@ -59,22 +64,53 @@ def recuperar_nombre(contactos, base_datos):
                 
     return arr
 
+def aumentar_saldo(destino, valor, base_datos):
+    res = 0
+    for cuenta in base_datos:
+        if destino == cuenta.numero:
+            cuenta.saldo += valor
+            res = cuenta
+    return cuenta
+
 @app.route("/billetera/contactos", methods=["GET"])
 def get_contactos():
+    numerito = request.args.get("minumero")
+    
+    for cuenta in BaseDatos:
+        if cuenta.numero == numerito:
+            cuenta_contactos = cuenta.get_contactos()
+            gaa = recuperar_nombre(cuenta_contactos, BaseDatos)
+            return jsonify({
+                "Contactos":gaa,
+            })
+
+@app.route("/billetera/pagar", methods=["GET"])
+def pagar_usuario():
+    numerito = request.args.get("minumero")
+    destino = request.args.get("numerodestino")
+    valor = request.args.get("valor")
+    
+    for cuenta in BaseDatos:
+        if cuenta.numero == numerito:
+            if destino in cuenta.contactos:
+                cuen = aumentar_saldo(destino, valor)
+                return jsonify({
+                    "result":cuen
+                })
+            else:
+                return jsonify({
+                    "result":"No existe contacto"
+                })
+    
+@app.route("/billetera/historial", methods=["GET"])
+def historial_usuario():
     numerito = request.args.get("minumero")
     BaseDatos = []
     BaseDatos.append(Cuenta("21345", "Arnaldo", 200, ["123", "456"]))
     BaseDatos.append(Cuenta("123", "Luisa", 400, ["456"]))
     BaseDatos.append(Cuenta("456", "Andrea", 300, ["21345"]))
     
-    for cuenta in BaseDatos:
-        if cuenta.numero == numerito:
-            cuenta_contactos = cuenta.get_contactos()
-            
-            gaa = recuperar_nombre(cuenta_contactos, BaseDatos)
-            return jsonify({
-                "Contactos":gaa,
-            })
+    
 
 
 if __name__ == "__main__":
