@@ -101,7 +101,8 @@ def pagar_usuario():
                 return jsonify({
                     "result":"No existe contacto"
                 })
-    
+
+"""
 @app.route("/billetera/historial", methods=["GET"])
 def historial_usuario():
     numerito = request.args.get("minumero")
@@ -109,9 +110,12 @@ def historial_usuario():
     BaseDatos.append(Cuenta("21345", "Arnaldo", 200, ["123", "456"]))
     BaseDatos.append(Cuenta("123", "Luisa", 400, ["456"]))
     BaseDatos.append(Cuenta("456", "Andrea", 300, ["21345"]))
-    
-    
+"""
 
+BaseDatos = []
+BaseDatos.append(Cuenta("21345", "Arnaldo", 200, ["123", "456"]))
+BaseDatos.append(Cuenta("123", "Luisa", 400, ["456"]))
+BaseDatos.append(Cuenta("456", "Andrea", 300, ["21345"]))
 
 if __name__ == "__main__":
-    app.run(port=8000, debug=False)
+    app.run(port=8000)
