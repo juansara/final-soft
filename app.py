@@ -42,6 +42,7 @@ class Cuenta:
         else:
             if str(destino_numero) in self.contactos:
                 opera = Operacion(destino_numero, valor, tipo='Enviado')
+                self.saldo -= valor
                 if destino_numero not in list(self.historial.keys()):
                     self.historial[destino_numero] = [opera]
                 else:
@@ -116,6 +117,7 @@ def pagar_usuario():
             ga = cuenta.pagar(destino, valor)
             print(ga)
             if ga == f"Realizado en {date.today().isoformat()}":
+                print(ga)
                 actualizar_destino(destino, valor, numerito)
                 return jsonify({
                     "result": ga
@@ -134,7 +136,7 @@ def historial_usuario():
             return cuenta.historial_rev()
             
 BaseDatos = []
-BaseDatos.append(Cuenta("21345", "Arnaldo", 200, ["123", "456"]))
+BaseDatos.append(Cuenta("21345", "Arnaldo", 500, ["123", "456"]))
 BaseDatos.append(Cuenta("123", "Luisa", 400, ["456"]))
 BaseDatos.append(Cuenta("456", "Andrea", 300, ["21345"]))
 
