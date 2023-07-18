@@ -1,8 +1,6 @@
 from flask import Flask, request, jsonify
-from flask.testing import FlaskClient
 from flask_cors import CORS
 from datetime import date
-import unittest
 
 class Operacion:
     def __init__(self, destino, valor ,fecha = date.today().isoformat(), tipo = None):
@@ -18,9 +16,6 @@ class Cuenta:
         self.nombre = nombre
         self.contactos = contactos
         self.historial = {}
-    
-    #http://127.0.0.1:5000/billetera/historial?minumero=21345
-    #/billetera/pagar?minumero=21345&numerodestino=123&valor=100
     
     def historial_rev(self):
         historial = {"Enviado" : [], "Recibido": []}
@@ -38,7 +33,7 @@ class Cuenta:
 
     def pagar(self, destino_numero, valor):
         if(valor > self.saldo):
-            print("No tienes saldo suficiente")
+            return 'Saldo insuficiente'
         else:
             if str(destino_numero) in self.contactos:
                 opera = Operacion(destino_numero, valor, tipo='Enviado')
@@ -49,7 +44,7 @@ class Cuenta:
                     self.historial[destino_numero].append(opera)
                 return f"Realizado en {opera.fecha}"
             else:
-                return "No se realizo la transaccion"
+                return "No tienes el contacto guardado"
                 
     def get_contactos(self):
         return self.contactos
@@ -92,6 +87,13 @@ def recuperar_by_numero(destino):
     for cuenta in BaseDatos:
         if cuenta.numero == destino:
             return str(cuenta.nombre)
+        
+def existe_usuario(BaseDatos, minumero):
+    for usuario in BaseDatos:
+        if usuario.numero == minumero:
+            return True
+        else:
+            return False
 
 @app.route("/billetera/contactos", methods=["GET"])
 def get_contactos():
@@ -103,6 +105,7 @@ def get_contactos():
             gaa = recuperar_nombre(cuenta_contactos, BaseDatos)
             return jsonify({
                 "Contactos":gaa,
+                "Response":200
             })
 
 
@@ -115,25 +118,32 @@ def pagar_usuario():
     for cuenta in BaseDatos:
         if cuenta.numero == numerito:
             ga = cuenta.pagar(destino, valor)
-            print(ga)
+            #print(ga)
             if ga == f"Realizado en {date.today().isoformat()}":
-                print(ga)
+                #print(ga)
                 actualizar_destino(destino, valor, numerito)
                 return jsonify({
                     "result": ga
                 })
             else:
                 return jsonify({
-                    "result": "No realizo la transaccion"
+                    "result":"No se realizo la transaccion",
+                    "motivo":ga
                 })
 
 @app.route("/billetera/historial", methods=["GET"])
 def historial_usuario():
     numerito = request.args.get("minumero")
+    existe_usuario_res = existe_usuario(BaseDatos, numerito)
     
-    for cuenta in BaseDatos:
-        if cuenta.numero == numerito:
-            return cuenta.historial_rev()
+    if existe_usuario_res:
+        for cuenta in BaseDatos:
+            if cuenta.numero == numerito:
+                return cuenta.historial_rev()
+    else:
+        return jsonify({
+            "result" : "No existe el historial del usuario solicitado"
+        })
             
 BaseDatos = []
 BaseDatos.append(Cuenta("21345", "Arnaldo", 500, ["123", "456"]))
